@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AZ Ninja</title>
+    <style>
+        body {
+            direction: rtl;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #a0d8ef;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+        }
+
+        .fruit {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        #score {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 24px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        #instructions {
+            text-align: center;
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 30px;
+            color: black;
+            text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.5);
+        }
+
+        #game-over {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 48px;
+            color: red;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            display: none;
+        }
+
+        #restart-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 12px 24px;
+            font-size: 20px;
+            background-color: #00ff00;
+            color: white;
+            cursor: pointer;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <!-- Here we will dynamically add fruits -->
+    </div>
+    <div id="score">נקודות : 0</div>
+    <div id="instructions"> לחץ להתחיל לשחק <br> "אסור לגעת בכדור אדום" </div>
+    <div id="game-over">בוום!!!</div>
+    <div id="restart-button">איתחול מחדש</div>
+    <script>
+        const fruits = ["apple", "orange", "banana"];
+        const fruitColors = ["red", "orange", "yellow"];
+        const fruitSize = 80;
+        const maxFruits = 10;
+        const minSpeed = 5;
+        const gameContainer = document.getElementById("game-container");
+        let score = 0;
+        let isGameOver = false;
+        let speed = minSpeed;
+
+        function getRandomFruit() {
+            const randomIndex = Math.floor(Math.random() * fruits.length);
+            return fruits[randomIndex];
+        }
+
+        function getRandomPosition() {
+            const x = Math.random() * (window.innerWidth - fruitSize);
+            const y = 0; // Set the initial position at the top of the screen
+            return { x, y };
+        }
+
+        function createFruit() {
+            if (!isGameOver && gameContainer.childElementCount < maxFruits) {
+                const fruit = getRandomFruit();
+                const { x, y } = getRandomPosition();
+                const color = fruitColors[fruits.indexOf(fruit)];
+
+                const fruitDiv = document.createElement("div");
+                fruitDiv.className = "fruit";
+                fruitDiv.style.backgroundColor = color;
+                fruitDiv.style.left = x + "px";
+                fruitDiv.style.top = y + "px";
+
+                fruitDiv.addEventListener("click", () => {
+                    if (!isGameOver) {
+                        if (fruit === "apple") {
+                            endGame();
+                        } else {
+                            score++;
+                            document.getElementById("score").textContent = "נקודות: " + score;
+                            gameContainer.removeChild(fruitDiv);
+                            if (score % 10 === 0) {
+                                increaseSpeed();
+                            }
+                        }
+                    }
+                });
+
+                gameContainer.appendChild(fruitDiv);
+            }
+        }
+
+        function moveFruits() {
+            const fruits = document.getElementsByClassName("fruit");
+            for (const fruit of fruits) {
+                const top = parseInt(fruit.style.top, 10);
+                if (!isGameOver) {
+                    if (top > window.innerHeight) {
+                        if (fruit.className.includes("apple")) {
+                            endGame();
+                            return;
+                        }
+                        gameContainer.removeChild(fruit);
+                    } else {
+                        fruit.style.top = top + Math.random() * speed + "px";
+                    }
+                }
+            }
+        }
+
+        function removeAllFruits() {
+            const fruits = document.getElementsByClassName("fruit");
+            while (fruits.length > 0) {
+                gameContainer.removeChild(fruits[0]);
+            }
+        }
+
+        function increaseSpeed() {
+            speed = Math.min(speed + 5, 30); // Increase the speed up to a maximum of 10
+        }
+
+        function endGame() {
+            isGameOver = true;
+            document.getElementById("game-over").style.display = "block";
+            document.getElementById("restart-button").style.display = "block";
+            removeAllFruits();
+        }
+
+        function restartGame() {
+            score = 0;
+            speed = minSpeed;
+            isGameOver = false;
+            document.getElementById("score").textContent = "נקודות: 0";
+            document.getElementById("game-over").style.display = "none";
+            document.getElementById("restart-button").style.display = "none";
+            document.getElementById("instructions").style.display = "block";
+        }
+
+        document.getElementById("restart-button").addEventListener("click", restartGame);
+
+        document.addEventListener("click", () => {
+            if (!isGameOver) {
+                document.getElementById("instructions").style.display = "none";
+            }
+        });
+
+        setInterval(createFruit, 1000);
+        setInterval(moveFruits, 100);
+    </script>
+</body>
+</html>
